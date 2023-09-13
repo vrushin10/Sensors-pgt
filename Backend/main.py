@@ -1,74 +1,128 @@
-from fastapi import FastAPI, HTTPException, Depends
-from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
-from typing import List, Optional
+from flask import Flask, request, json, Response
+from bson import ObjectId 
+from pymongo import MongoClient
+import logging as log
 import uvicorn
 
-app = FastAPI()
+app = Flask(__name__)
 
-# MongoDB settings
-MONGO_URI = "mongodb://localhost:27017"
-DATABASE_NAME = "Bullet_Detection"
-COLLECTION_NAME = "Bullet_Detection"
+class MongoAPI:
+    def __init__(self, data):
+        log.basicConfig(level=log.DEBUG, format='%(asctime)s %(levelname)s:\n%(message)s\n')
+        # self.client = MongoClient("mongodb://localhost:27017/")  # When only Mongo DB is running on Docker.
+        self.client = MongoClient("mongodb://localhost:27017/")     # When both Mongo and This application is running on
+                                                                    # Docker and we are using Docker Compose
 
-# MongoDB connection
-client = AsyncIOMotorClient(MONGO_URI)
-db = client[DATABASE_NAME]
-collection = db[COLLECTION_NAME]
+        database =  "Sensor_project"
+        collection = "water_quality"
+        cursor = self.client[database]
+        self.collection = cursor[collection]
+        self.data = data
 
-class Values(BaseModel):
-    _id:Optional[str] = None
-    latitude:float
-    longitutde:float
-    bullet_detected:bool
-    heart_rate:int
-    temperature:int
-    vest_id:int
-    timestamp:int
+    def read(self):
+        log.info('Reading All Data')
+        documents = self.collection.find()
+        output = []
+        
+        for data in documents:
+            tmp_obj={}
+            for item in data:
+                if item != '_id':    
+                    tmp_obj[item] = data[item]   
+                else:
+                    tmp_obj["id"]=str(data[item])  
+            output.append(tmp_obj)
+            print(tmp_obj)
+        return output
 
+    def write(self, data):
+        log.info('Writing Data')
+        new_document = data['Document']
+        response = self.collection.insert_one(new_document)
+        output = {'Status': 'Successfully Inserted',
+                  'Document_ID': str(response.inserted_id)}
+        return output
 
-# Create an item
-@app.post("/items/", response_model=Values)
-async def create_item(item: Values):
-    result = await collection.insert_one(item.model_dump())
-    created_item = await collection.find_one({"_id": result.inserted_id})
-    return created_item
+    def update(self):
+        log.info('Updating Data')
+        filt = self.data['Filter']
+        updated_data = {"$set": self.data['DataToBeUpdated']}
+        response = self.collection.update_one(filt, updated_data)
+        output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
+        return output
 
-# Read all items
-@app.get("/items/", response_model=List[Values])
-async def read_items():
-    items = await collection.find().to_list(1000)
-    return items
-
-# Read a single item by ID
-@app.get("/items/{item_id}", response_model=Values)
-async def read_item(item_id: str):
-    item = await collection.find_one({"_id": item_id})
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return item
-
-# Update an item by ID
-@app.put("/items/{item_id}", response_model=Values)
-async def update_item(item_id: str, item: Values):
-    existing_item = await collection.find_one({"_id": item_id})
-    if existing_item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    await collection.update_one({"_id": item_id}, {"$set": item.dict()})
-    updated_item = await collection.find_one({"_id": item_id})
-    return updated_item
-
-# Delete an item by ID
-@app.delete("/items/{item_id}", response_model=Values)
-async def delete_item(item_id: str):
-    item = await collection.find_one({"_id": item_id})
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    await collection.delete_one({"_id": item_id})
-    return item
+    def delete(self, data):
+        log.info('Deleting Data')
+        filt = data['Filter']
+        response = self.collection.delete_one(filt)
+        output = {'Status': 'Successfully Deleted' if response.deleted_count > 0 else "Document not found."}
+        return output
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+@app.route('/')
+def base():
+    return Response(response=json.dumps({"Status": "UP"}),
+                    status=200,
+                    mimetype='application/json')
+
+
+@app.route('/mongodb', methods=['GET'])
+def mongo_read():
+    print("starting read")
+    data = request
+    print(data)
+    if data is None or data == {}:
+        return Response(response=json.dumps({"Error": "Please provide connection information"}),
+                        status=400,
+                        mimetype='application/json')
+    obj1 = MongoAPI(data)
+    response = obj1.read()
+    return Response(response=json.dumps(response),
+                    status=200,
+                    mimetype='application/json')
+
+
+@app.route('/mongodb', methods=['POST'])
+def mongo_write():
+    data = request.json
+    if data is None or data == {} or 'Document' not in data:
+        return Response(response=json.dumps({"Error": "Please provide connection information"}),
+                        status=400,
+                        mimetype='application/json')
+    obj1 = MongoAPI(data)
+    response = obj1.write(data)
+    return Response(response=json.dumps(response),
+                    status=200,
+                    mimetype='application/json')
+
+@app.route('/mongodb', methods=['PUT'])
+def mongo_update():
+    data = request.json
+    if data is None or data == {} or 'Filter' not in data:
+        return Response(response=json.dumps({"Error": "Please provide connection information"}),
+                        status=400,
+                        mimetype='application/json')
+    obj1 = MongoAPI(data)
+    response = obj1.update()
+    return Response(response=json.dumps(response),
+                    status=200,
+                    mimetype='application/json')
+
+
+@app.route('/mongodb', methods=['DELETE'])
+def mongo_delete():
+    data = request.json
+    if data is None or data == {} or 'Filter' not in data:
+        return Response(response=json.dumps({"Error": "Please provide connection information"}),
+                        status=400,
+                        mimetype='application/json')
+    obj1 = MongoAPI(data)
+    response = obj1.delete(data)
+    return Response(response=json.dumps(response),
+                    status=200,
+                    mimetype='application/json')
+
+
+if __name__ == '__main__':
+    # uvicorn.run(app, host="127.0.0.1", port=8000)
+    app.run(debug=True, port=5001, host='0.0.0.0')

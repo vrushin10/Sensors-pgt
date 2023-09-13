@@ -9,7 +9,7 @@ import {
 
 const MyNavbar: React.FC<CardProps> = () => {
   return (
-    <Navbar expand="lg" >
+    <Navbar expand="lg " variant="dark" bg="dark">
       <Container>
         <Navbar.Brand href="#home">
           <img
@@ -22,7 +22,9 @@ const MyNavbar: React.FC<CardProps> = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#home" color="dark">Home</Nav.Link>
+            <Nav.Link href="#home" color="dark">
+              Home
+            </Nav.Link>
             <Nav.Link href="#link">Link</Nav.Link>
             <NavDropdown title="Dropdown" id="basic-nav-dropdown">
               <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>

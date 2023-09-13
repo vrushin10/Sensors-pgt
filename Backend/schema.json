@@ -1,0 +1,44 @@
+{
+  $jsonSchema: {
+    bsonType: 'object',
+    required: [
+      'latitude',
+      'longitutde',
+      'bullet_detected',
+      'heart_rate',
+      'temperature',
+      'vest_id',
+      'timestamp'
+    ],
+    properties: {
+      latitude: {
+        bsonType: 'double',
+        description: '\'latitude\' must be a double and is required'
+      },
+      longitutde: {
+        bsonType: 'double',
+        description: '\'longitutde\' must be a double and is required'
+      },
+      bullet_detected: {
+        bsonType: 'bool',
+        description: '\'bullet_detected\' must be a bool and is required'
+      },
+      heart_rate: {
+        bsonType: 'int',
+        description: '\'latitude\' must be a double and is required'
+      },
+      temperature: {
+        bsonType: 'int',
+        description: '\'latitude\' must be a double and is required'
+      },
+      vest_id: {
+        bsonType: 'int',
+        description: '\'latitude\' must be a double and is required'
+      },
+      timestamp: {
+        bsonType: 'int',
+        description: '\'latitude\' must be a double and is required'
+      }
+    }
+  }
+}
