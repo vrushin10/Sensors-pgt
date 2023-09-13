@@ -1,4 +1,4 @@
-import * as React from "react";
+// import * as React from "react";
 import Map, { Marker } from "react-map-gl/maplibre";
 
 export default function Mymap() {
