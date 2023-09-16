@@ -1,128 +1,110 @@
 from flask import Flask, request, json, Response
-from bson import ObjectId 
+from bson import ObjectId
 from pymongo import MongoClient
-import logging as log
-import uvicorn
-
+    
 app = Flask(__name__)
 
-class MongoAPI:
-    def __init__(self, data):
-        log.basicConfig(level=log.DEBUG, format='%(asctime)s %(levelname)s:\n%(message)s\n')
-        # self.client = MongoClient("mongodb://localhost:27017/")  # When only Mongo DB is running on Docker.
-        self.client = MongoClient("mongodb+srv://Back_end:Back_end@cluster0.uismmhb.mongodb.net/?retryWrites=true&w=majority")     # When both Mongo and This application is running on
-                                                                    # Docker and we are using Docker Compose
+# Configuration (You can move this to a config file or use environment variables)
+MONGO_URI = "mongodb://localhost:27017/"
+DATABASE_NAME = "Sensor_project"
+COLLECTION_NAME = "water_quality"
 
-        database =  "Sensor_project"
-        collection = "water_quality"
-        cursor = self.client[database]
-        self.collection = cursor[collection]
-        self.data = data
+
+class MongoAPI:
+    def __init__(self):
+        self.client = MongoClient(MONGO_URI)
+        self.db = self.client[DATABASE_NAME]
+        self.collection = self.db[COLLECTION_NAME]
 
     def read(self):
-        log.info('Reading All Data')
         documents = self.collection.find()
-        output = []
-        
-        for data in documents:
-            tmp_obj={}
-            for item in data:
-                if item != '_id':    
-                    tmp_obj[item] = data[item]   
-                else:
-                    tmp_obj["id"]=str(data[item])  
-            output.append(tmp_obj)
-            print(tmp_obj)
+        output = [{**data, "_id": str(data["_id"])} for data in documents]
+        return output
+
+    def read(self, filter):
+        documents = self.collection.find(filter=filter)
+        output = [{**data, "_id": str(data["_id"])} for data in documents]
         return output
 
     def write(self, data):
-        log.info('Writing Data')
-        new_document = data['Document']
+        new_document = data["Document"]
         response = self.collection.insert_one(new_document)
-        output = {'Status': 'Successfully Inserted',
-                  'Document_ID': str(response.inserted_id)}
+        output = {
+            "Status": "Successfully Inserted",
+            "Document_ID": str(response.inserted_id),
+        }
         return output
 
-    def update(self):
-        log.info('Updating Data')
-        filt = self.data['Filter']
-        updated_data = {"$set": self.data['DataToBeUpdated']}
-        response = self.collection.update_one(filt, updated_data)
-        output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
+    def update(self, filter_data, update_data):
+        response = self.collection.update_one(
+            filter_data, {"$set": update_data})
+        output = {
+            "Status": "Successfully Updated"
+            if response.modified_count > 0
+            else "Nothing was updated."
+        }
         return output
 
-    def delete(self, data):
-        log.info('Deleting Data')
-        filt = data['Filter']
-        response = self.collection.delete_one(filt)
-        output = {'Status': 'Successfully Deleted' if response.deleted_count > 0 else "Document not found."}
+    def delete(self, filter_data):
+        response = self.collection.delete_one(filter_data)
+        output = {
+            "Status": "Successfully Deleted"
+            if response.deleted_count > 0
+            else "Document not found."
+        }
         return output
 
 
-@app.route('/')
+@app.route("/")
 def base():
-    return Response(response=json.dumps({"Status": "UP"}),
-                    status=200,
-                    mimetype='application/json')
+    return Response(response=json.dumps({"Status": "UP"}), status=200, mimetype="application/json")
 
 
-@app.route('/mongodb', methods=['GET'])
+@app.route("/mongodb", methods=["GET"])
 def mongo_read():
-    print("starting read")
-    data = request
-    print(data)
-    if data is None or data == {}:
-        return Response(response=json.dumps({"Error": "Please provide connection information"}),
-                        status=400,
-                        mimetype='application/json')
-    obj1 = MongoAPI(data)
+    obj1 = MongoAPI()
     response = obj1.read()
-    return Response(response=json.dumps(response),
-                    status=200,
-                    mimetype='application/json')
+    return Response(response=json.dumps(response), status=200, mimetype="application/json")
 
 
-@app.route('/mongodb', methods=['POST'])
+@app.route("/mongodb/<id>", methods=["GET"])
+def mongo_read_id(id):
+    obj1 = MongoAPI()
+    filter_data = {"_id": ObjectId(id)}
+    response = obj1.read(filter_data)[0]
+    if len(response) > 1:
+        raise RuntimeError()
+    return Response(response=json.dumps(response), status=200, mimetype="application/json")
+
+
+@app.route("/mongodb", methods=["POST"])
 def mongo_write():
     data = request.json
-    if data is None or data == {} or 'Document' not in data:
-        return Response(response=json.dumps({"Error": "Please provide connection information"}),
-                        status=400,
-                        mimetype='application/json')
-    obj1 = MongoAPI(data)
+    if data is None or data == {} or "Document" not in data:
+        return Response(response=json.dumps({"Error": "Invalid input data"}), status=400, mimetype="application/json")
+    obj1 = MongoAPI()
     response = obj1.write(data)
-    return Response(response=json.dumps(response),
-                    status=200,
-                    mimetype='application/json')
+    return Response(response=json.dumps(response), status=200, mimetype="application/json")
 
-@app.route('/mongodb', methods=['PUT'])
-def mongo_update():
+
+@app.route("/mongodb/<id>", methods=["PUT"])
+def mongo_update(id):
     data = request.json
-    if data is None or data == {} or 'Filter' not in data:
-        return Response(response=json.dumps({"Error": "Please provide connection information"}),
-                        status=400,
-                        mimetype='application/json')
-    obj1 = MongoAPI(data)
-    response = obj1.update()
-    return Response(response=json.dumps(response),
-                    status=200,
-                    mimetype='application/json')
+    if data is None or data == {}:
+        return Response(response=json.dumps({"Error": "Invalid input data"}), status=400, mimetype="application/json")
+    filter_data = {"_id": ObjectId(id)}
+    obj1 = MongoAPI()
+    response = obj1.update(filter_data, data)
+    return Response(response=json.dumps(response), status=200, mimetype="application/json")
 
 
-@app.route('/mongodb', methods=['DELETE'])
-def mongo_delete():
-    data = request.json
-    if data is None or data == {} or 'Filter' not in data:
-        return Response(response=json.dumps({"Error": "Please provide connection information"}),
-                        status=400,
-                        mimetype='application/json')
-    obj1 = MongoAPI(data)
-    response = obj1.delete(data)
-    return Response(response=json.dumps(response),
-                    status=200,
-                    mimetype='application/json')
+@app.route("/mongodb/<id>", methods=["DELETE"])
+def mongo_delete(id):
+    filter_data = {"_id": ObjectId(id)}
+    obj1 = MongoAPI()
+    response = obj1.delete(filter_data)
+    return Response(response=json.dumps(response), status=200, mimetype="application/json")
 
 
-if __name__ == '__main__':
-    # uvicorn.run(app, host="127.0.0.1", port=8000)
-    app.run(debug=True, port=5001, host='0.0.0.0')
+if __name__ == "__main__":
+    app.run(port=5001, host="0.0.0.0")
