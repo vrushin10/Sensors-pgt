@@ -3,22 +3,22 @@ from typing import Optional
 
 
 class Values(BaseModel):
-    vestid: str
-    bullet_detected: bool
+    nodeid: str
+    tds: float
     lat: float
     long: float
-    temp: float
-    heartrate: int
+    pH: float
+    turbidity: float
     timestamp: int
 
 
 class nullishValues(BaseModel):
-    vestid: Optional[str] = None
-    bullet_detected: Optional[bool] = None
+    nodeid: Optional[str] = None
+    tds: Optional[float] = None
     lat: Optional[float] = None
     long: Optional[float] = None
-    temp: Optional[float] = None
-    heartrate: Optional[int] = None
+    pH: Optional[float] = None
+    turbidity: Optional[float] = None
     timestamp: Optional[int] = None
 
 

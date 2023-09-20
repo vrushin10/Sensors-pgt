@@ -5,10 +5,10 @@ import firebase_admin.firestore as firestore
 from firebase_admin import credentials
 from fastapi import FastAPI
 from fastapi.responses import Response
-import model
+import sensors_model as model
 from google.cloud.firestore_v1.base_query import FieldFilter
 
-cred = firebase_admin.credentials.Certificate(
+cred = credentials.Certificate(
     "./bullet-detection-vest-firebase-adminsdk-a8mkk-8874ac4eb9.json")
 firebase_admin.initialize_app(cred)
 
@@ -67,14 +67,14 @@ async def root():
 
 @app.get("/firebase")
 def db_read():
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     response = obj1.read_all_document()
     return Response(content=json.dumps(response), media_type="application/json")
 
 
 @app.get("/firebase/id")
 def mongo_read_id(body: model.dbGet_id):
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     response = obj1.read_document(body._id)
     if len(response) > 1:
         raise RuntimeError()
@@ -82,13 +82,13 @@ def mongo_read_id(body: model.dbGet_id):
 
 @app.get("/firebase/vest")
 def get_vests():
-    obj1 = Firebase("vest-info")
+    obj1 = Firebase("nodes")
     response = obj1.read_all_document()
     return Response(content=json.dumps(response), media_type="application/json")
 
 @app.get("/firebase/id")
 def mongo_read_id(body: model.dbGet_id):
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     response = obj1.read_document(body._id)
     if len(response) > 1:
         raise RuntimeError()
@@ -96,8 +96,8 @@ def mongo_read_id(body: model.dbGet_id):
 
 @app.get("/RTI/all")
 def RTI_all():
-    obj1 = Firebase("rti-info")
-    obj2 = Firebase("vest-info")
+    obj1 = Firebase("Sensor_logs")
+    obj2 = Firebase("nodes")
     response1 = obj2.read_all_document()
     res = []
     ids = []
@@ -114,7 +114,7 @@ def RTI_all():
 def mongo_write(body: model.dbPost):
     if body.values == {} or body.values == None:
         return Response(content=json.dumps({"Error": "Invalid input data"}), status_code=400, media_type="application/json")
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     values = body.values.model_dump()
     obj1.create_document(values)
     return Response(content=json.dumps({"success": "a document was created", "documnet": values}), status_code=200, media_type="application/json")
@@ -124,7 +124,7 @@ def mongo_write(body: model.dbPost):
 def mongo_update_id(body: model.dbUpdate_id):
     if body.iD == None or body.iD == "":
         return Response(response=json.dumps({"Error": "Invalid filter"}), status=400, mimetype="application/json")
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     values = body.updateValues.model_dump()
     print("before",values)
     for key in values.copy():
@@ -137,13 +137,13 @@ def mongo_update_id(body: model.dbUpdate_id):
 
 @app.delete("/firebase/id")
 def mongo_delete_filter(body: model.dbDelete_id):
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     obj1.delete_document(body.iD)
     return Response(content=f"successfuly deleted document with id {body.iD}", status=200)
 
 
 @app.delete("/firebase/all")
 def mongo_delete_all():
-    obj1 = Firebase("vests")
+    obj1 = Firebase("Sensor_logs")
     obj1.delete_all_document()
     return "succesfully deleted all documents"
