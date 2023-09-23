@@ -1,11 +1,12 @@
 // import * as React from "react";
 // import './App.css'
-import Dashboard from "./components/Dashboard";
-
+// import Dashboard from "./components/Dashboard";
+import Dash from "./components/Dashboard1";
 function App() {
   return (
     <>
-      <Dashboard></Dashboard>
+    <Dash></Dash>
+      {/* <Dashboard></Dashboard> */}
     </>
   );
 }

@@ -1,28 +1,27 @@
 import * as React from "react";
-// import { Navbar } from "react-bootstrap";
 import { MyCard, CardProps } from "./Card";
 import MyNavbar from "./Navbar";
-import Mymap from "./Map";
+// import { useEffect, useRef } from "react";
+import Mymap from "./Mymap";
 
-export default class Dashboard extends React.Component {
-  static cardprop: CardProps = {
-  temp: 32,
-  pH: 7.0,
-  turbidity:10,
-  TDS:10,
-  timestamp: Date.now(),
-  lat:10.12,
-  long:12.2,
-  device_id:"1"
-  };
+export default function Dashboard() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [cardprop, setcardprop] = React.useState<CardProps>({
+    temp: 32,
+    pH: 7.0,
+    turbidity: 10,
+    TDS: 10,
+    timestamp: Date.now(),
+    lat: 10.12,
+    long: 12.2,
+    device_id: "1",
+  });
 
-  render() {
-    return (
-      <>
-        <MyNavbar />
-        <MyCard {...Dashboard.cardprop}></MyCard>
-        <Mymap ></Mymap>
-      </>
-    );
-  }
+  return (
+    <>
+      <MyNavbar />
+      <MyCard {...cardprop}></MyCard>
+      <Mymap />
+    </>
+  );
 }
