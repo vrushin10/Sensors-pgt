@@ -8,35 +8,37 @@ import View from "ol/View";
 import { Icon, Style } from "ol/style";
 import { OSM, Vector as VectorSource } from "ol/source";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
+import { fromLonLat } from "ol/proj";
+import { water_quality_data } from "../types/water_quality";
 
-export default function Mymap() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const iconFeature = new Feature({
-  //   geometry: new Point([0, 0]),
-  //   name: "Null Island",
-  // });
-  const iconFeature1 = new Feature({
-    geometry: new Point([10, -10]),
-    name: "Null Island",
-  });
+export declare type mapProps = {
+  data: water_quality_data[];
+};
 
-  const iconStyle = new Style({
-    image: new Icon({
-      anchorXUnits: "fraction",
-      anchorYUnits: "pixels",
-      src: "vite.svg",
-    }),
-  });
-
-  // iconFeature.setStyle(iconStyle);
-  iconFeature1.setStyle(iconStyle);
-
-  const vectorSource = new VectorSource({
-    features: [iconFeature1],
-  });
+export default function Mymap(props: mapProps) {
+  const freatures: Feature<Point>[] = [];
+  const data = props.data;
+  for (let index = 0; index < data.length; index++) {
+    const prop = data[index];
+    const iconFeature = new Feature({
+      geometry: new Point(fromLonLat([prop.long, prop.lat])),
+      id: prop.device_id,
+    });
+    iconFeature.setStyle(
+      new Style({
+        image: new Icon({
+          src: "untitled.svg",
+          height: 30,
+        }),
+      })
+    );
+    freatures.push(iconFeature);
+  }
 
   const vectorLayer = new VectorLayer({
-    source: vectorSource,
+    source: new VectorSource({
+      features: freatures,
+    }),
   });
 
   const rasterLayer = new TileLayer({
@@ -50,7 +52,7 @@ export default function Mymap() {
         target: "map",
         layers: [rasterLayer, vectorLayer],
         view: new View({
-          center: [0, 0],
+          center: [10, 10],
           zoom: 2,
         }),
       });

@@ -16,13 +16,23 @@ class Dash extends React.Component {
     timestamp: 90000,
     turbidity: 600,
   };
+  static cardprops2: CardProps = {
+    device_id: "2",
+    lat: 19.0767253,
+    long: 72.9106087, 
+    pH: 7.8,
+    TDS: 100,
+    temp: 32,
+    timestamp: 90000,
+    turbidity: 600,
+  };
 
   render() {
     return (
       <>
         <MyNavbar></MyNavbar>
         <MyCard {...Dash.cardprops}></MyCard>
-        <Mymap></Mymap>
+        <Mymap data={[Dash.cardprops,Dash.cardprops2]} ></Mymap>
       </>
     );
   }

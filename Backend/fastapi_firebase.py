@@ -3,10 +3,15 @@ import uuid
 import firebase_admin
 import firebase_admin.firestore as firestore
 from firebase_admin import credentials
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import Response
 import model
 from google.cloud.firestore_v1.base_query import FieldFilter
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
+
+templates = Jinja2Templates(directory="dist")
 
 cred = firebase_admin.credentials.Certificate(
     "./bullet-detection-vest-firebase-adminsdk-a8mkk-8874ac4eb9.json")
@@ -14,10 +19,11 @@ firebase_admin.initialize_app(cred)
 
 app = FastAPI()
 
-
+app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+app.mount("/static", StaticFiles(directory="dist/static"), name="static")
 class Firebase:
 
-    def __init__(self,collection:str) -> None:
+    def __init__(self, collection: str) -> None:
         db = firestore.client()
         self.connection = db.collection(collection)
 
@@ -27,9 +33,10 @@ class Firebase:
         doc_ref.set(document)
 
     def read_latest_document(self, id):
-        doc_ref = self.connection.where(filter=FieldFilter("id","==",id)).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(1)
+        doc_ref = self.connection.where(filter=FieldFilter("id", "==", id)).order_by(
+            "timestamp", direction=firestore.Query.DESCENDING).limit(1)
         return doc_ref.to_dict()
-        
+
     def read_all_document(self):
         # doc_ref = self.connection.document()
         docs = self.connection.stream()
@@ -61,8 +68,8 @@ class Firebase:
 
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def root(request: Request):
+    return templates.TemplateResponse("index.html",{"request":request})
 
 
 @app.get("/firebase")
@@ -80,11 +87,13 @@ def mongo_read_id(body: model.dbGet_id):
         raise RuntimeError()
     return response[0]
 
+
 @app.get("/firebase/vest")
 def get_vests():
     obj1 = Firebase("vest-info")
     response = obj1.read_all_document()
     return Response(content=json.dumps(response), media_type="application/json")
+
 
 @app.get("/firebase/id")
 def mongo_read_id(body: model.dbGet_id):
@@ -94,6 +103,7 @@ def mongo_read_id(body: model.dbGet_id):
         raise RuntimeError()
     return response[0]
 
+
 @app.get("/RTI/all")
 def RTI_all():
     obj1 = Firebase("rti-info")
@@ -101,13 +111,15 @@ def RTI_all():
     response1 = obj2.read_all_document()
     res = []
     ids = []
+
     for vals in response1:
         ids.append(vals.get("id"))
+
     for id in ids:
         val = obj1.read_latest_document(id)
         res.append(val)
-        
-    print(ids,res)
+
+    print(ids, res)
 
 
 @app.post("/firebase")
@@ -123,15 +135,15 @@ def mongo_write(body: model.dbPost):
 @app.put("/firebase/id",)
 def mongo_update_id(body: model.dbUpdate_id):
     if body.iD == None or body.iD == "":
-        return Response(response=json.dumps({"Error": "Invalid filter"}), status=400, mimetype="application/json")
+        return Response(response=json.dumps({"Error": "Invalid filter"}), status=400, media_type="application/json")
     obj1 = Firebase("vests")
     values = body.updateValues.model_dump()
-    print("before",values)
+    print("before", values)
     for key in values.copy():
         if values[key] == "" or values[key] == None:
             values.pop(key)
-    print("after",values)
-    obj1.update_document(body.iD,values)
+    print("after", values)
+    obj1.update_document(body.iD, values)
     return Response(content=f"successfuly updated document with id {body.iD}")
 
 
