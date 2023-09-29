@@ -3,6 +3,9 @@ import { MyCard, CardProps } from "./Card";
 import MyNavbar from "./Navbar";
 // import { useEffect, useRef } from "react";
 import Mymap from "./Mymap";
+import { GETALLFROMDB } from "../worker/dataFetcherservice";
+// import { Get_local } from "../worker/dataFetcherservice";
+// import { Get_local } from "../worker/dataFetcherservice";
 
 class Dash extends React.Component {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,7 +22,7 @@ class Dash extends React.Component {
   static cardprops2: CardProps = {
     device_id: "2",
     lat: 19.0767253,
-    long: 72.9106087, 
+    long: 72.9106087,
     pH: 7.8,
     TDS: 100,
     temp: 32,
@@ -27,12 +30,19 @@ class Dash extends React.Component {
     turbidity: 600,
   };
 
+
+  async componentDidMount() {
+     console.log(await (GETALLFROMDB()));
+     
+  }
+  
   render() {
+
     return (
       <>
         <MyNavbar></MyNavbar>
         <MyCard {...Dash.cardprops}></MyCard>
-        <Mymap data={[Dash.cardprops,Dash.cardprops2]} ></Mymap>
+        <Mymap data={[Dash.cardprops, Dash.cardprops2]}></Mymap>
       </>
     );
   }

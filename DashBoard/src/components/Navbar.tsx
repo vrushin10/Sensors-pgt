@@ -11,14 +11,14 @@ const MyNavbar: React.FC<CardProps> = () => {
   return (
     <Navbar expand="lg " variant="dark" bg="dark">
       <Container>
-        {/* <Navbar.Brand href="#home">
+        <Navbar.Brand href="#home">
           <img
-            src="./soldier_safety_bulletproof_vest.svg"
+            src="vite.svg"
             width="30"
             height="30"
             className="d-inline-block align-top"
           />
-        </Navbar.Brand> */}
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">

@@ -9,7 +9,8 @@ import model
 from google.cloud.firestore_v1.base_query import FieldFilter
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.
 
 templates = Jinja2Templates(directory="dist")
 
@@ -18,9 +19,22 @@ cred = firebase_admin.credentials.Certificate(
 firebase_admin.initialize_app(cred)
 
 app = FastAPI()
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:5173",
+    "http://localhost:4173"
+]
 
-app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-app.mount("/static", StaticFiles(directory="dist/static"), name="static")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 class Firebase:
 
     def __init__(self, collection: str) -> None:
@@ -70,6 +84,12 @@ class Firebase:
 @app.get("/")
 async def root(request: Request):
     return templates.TemplateResponse("index.html",{"request":request})
+
+
+# @app.get("/")
+# async def root(request: Request):
+#     # return templates.TemplateResponse("index.html",{"request":request})
+#     return {"msg": "this works"}
 
 
 @app.get("/firebase")
@@ -138,11 +158,6 @@ def mongo_update_id(body: model.dbUpdate_id):
         return Response(response=json.dumps({"Error": "Invalid filter"}), status=400, media_type="application/json")
     obj1 = Firebase("vests")
     values = body.updateValues.model_dump()
-    print("before", values)
-    for key in values.copy():
-        if values[key] == "" or values[key] == None:
-            values.pop(key)
-    print("after", values)
     obj1.update_document(body.iD, values)
     return Response(content=f"successfuly updated document with id {body.iD}")
 
@@ -159,3 +174,7 @@ def mongo_delete_all():
     obj1 = Firebase("vests")
     obj1.delete_all_document()
     return "succesfully deleted all documents"
+
+
+app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+app.mount("/", StaticFiles(directory="dist"), name="")
