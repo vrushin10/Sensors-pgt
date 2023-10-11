@@ -1,35 +1,44 @@
 import * as React from "react";
-import { Card } from "react-bootstrap";
+import {
+  bullet_detection_data,
+  water_quality_data,
+} from "../types/water_quality";
 // import { Card } from "react-bootstrap"
 
-export interface CardProps {
-  temp: number;
-  pH: number;
-  turbidity: number;
-  TDS: number;
-  timestamp: number;
-  lat: number;
-  long: number;
-  device_id: string;
-}
-
-export const MyCard: React.FC<CardProps> = (props) => {
+export const MySensorCard: React.FC<water_quality_data> = (props) => {
   const date = new Date(props.timestamp);
   const formattedDate = new Intl.DateTimeFormat("en-US").format(date);
   return (
+    <div className="m-2 max-w-sm  overflow-hidden rounded bg-slate-200  shadow-lg">
+      <h1 className="content-center p-6 text-lg font-bold">
+        {props.device_id}
+      </h1>
+
+      <div className="px-6 py-2">
+        <p className="text-base">turbidity : {props.turbidity}</p>
+        <p className="text-base">TDS : {props.TDS}</p>
+        <p className="text-base">temp : {props.temp}</p>
+        <p className="text-base">pH : {props.pH}</p>
+        <p className="text-base">Date : {formattedDate}</p>
+      </div>
+    </div>
+  );
+};
+
+export const MyBulletCard: React.FC<bullet_detection_data> = (props) => {
+  // const date = new Date(props.timestamp);
+  // const formattedDate = new Intl.DateTimeFormat("en-US").format(date);
+  return (
     <div>
-      <Card style={{ width: "18rem", margin: "2rem" }}>
-        <Card.Body>
-          <Card.Title>id: {props.device_id}</Card.Title>
-          <Card.Text>
-            <div>temp : {props.temp}</div>
-            <div>turbidity : {props.turbidity}</div>
-            <div>pH : {props.pH}</div>
-            <div>TDS : {props.TDS}</div>
-            <div>time: {formattedDate}</div>
-          </Card.Text>
-        </Card.Body>
-      </Card>
+      <div className="m-2 max-w-sm overflow-hidden rounded bg-slate-200 shadow-lg">
+        <div className="px-6 py-4">
+          <h2>id: {props.vestid}</h2>
+          <li>temp : {props.temp}</li>
+          <li>heartrate : {props.heartrate}</li>
+          <li>lat : {props.lat}</li>
+          <li>long : {props.long}</li>
+        </div>
+      </div>
     </div>
   );
 };

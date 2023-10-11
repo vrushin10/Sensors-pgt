@@ -5,10 +5,13 @@ import {
   bullet_detection_data,
 } from "../types/water_quality";
 
-export async function GETALLFROMDB(): Promise<bullet_detection_data[]> {
+
+
+export async function GETALLFROMDB(api:string): Promise<bullet_detection_data[]> {
   // eslint-disable-next-line no-useless-catch
   try {
-    const response = await axios.get("http://localhost:8000/firebase");
+    
+    const response = await axios.get(api +"/firebase");
     const output = array_bullet_detection_data_zod.parse(response.data) as bullet_detection_data[];
     return output;
   } catch (error) {

@@ -1,46 +1,23 @@
 import * as React from "react";
-import {
-  CardProps,
-  Navbar,
-  Container,
-  Nav,
-  NavDropdown,
-} from "react-bootstrap";
 
-const MyNavbar: React.FC<CardProps> = () => {
+const MyNavbar: React.FC = () => {
   return (
-    <Navbar expand="lg " variant="dark" bg="dark">
-      <Container>
-        <Navbar.Brand href="#home">
-          <img
-            src="vite.svg"
-            width="30"
-            height="30"
-            className="d-inline-block align-top"
-          />
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link href="#home" color="dark">
-              Home
-            </Nav.Link>
-            <Nav.Link href="#link">Link</Nav.Link>
-            <NavDropdown title="Dropdown" id="basic-nav-dropdown">
-              <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">
-                Another action
-              </NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.4">
-                Separated link
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+    <nav className="bg-blue-500 p-4">
+      <div className="container mx-auto flex items-center justify-between">
+        <div className="text-2xl font-bold text-white">GIS system</div>
+        <ul className="flex space-x-4">
+          <li className="text-white">
+            <a href="/">Home</a>
+          </li>
+          <li className="text-white">
+            <a href="/about">About</a>
+          </li>
+          <li className="text-white">
+            <a href="/contact">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
   );
 };
 

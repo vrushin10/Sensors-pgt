@@ -1,18 +1,17 @@
 import { useEffect, useRef } from "react";
-import "./styles.css";
 import "ol/ol.css";
 import { Map } from "ol";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import View from "ol/View";
 import { Icon, Style } from "ol/style";
-import { OSM, Vector as VectorSource } from "ol/source";
+import { BingMaps, Vector as VectorSource } from "ol/source";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { fromLonLat } from "ol/proj";
-import { water_quality_data } from "../types/water_quality";
+import { bullet_detection_data } from "../types/water_quality";
 
 export declare type mapProps = {
-  data: water_quality_data[];
+  data: bullet_detection_data[];
 };
 
 export default function Mymap(props: mapProps) {
@@ -22,7 +21,7 @@ export default function Mymap(props: mapProps) {
     const prop = data[index];
     const iconFeature = new Feature({
       geometry: new Point(fromLonLat([prop.long, prop.lat])),
-      id: prop.device_id,
+      id: prop.vestid,
     });
     iconFeature.setStyle(
       new Style({
@@ -30,7 +29,7 @@ export default function Mymap(props: mapProps) {
           src: "untitled.svg",
           height: 30,
         }),
-      })
+      }),
     );
     freatures.push(iconFeature);
   }
@@ -42,7 +41,10 @@ export default function Mymap(props: mapProps) {
   });
 
   const rasterLayer = new TileLayer({
-    source: new OSM(),
+    source: new BingMaps({
+      key: "Auy4QBkmzCKysMRGoQZSbrRFPv2CC0MYAXRDxOHRRXH9IYv2DV6kVyStMGeQ_PWL",
+      imagerySet: "Aerial",
+    }),
   });
 
   function useMap() {
@@ -72,9 +74,7 @@ export default function Mymap(props: mapProps) {
 
   return (
     <>
-      <div className="map-container">
-        <div id="map" ref={mapRef}></div>
-      </div>
+      <div className="relative h-full w-full bg-white" ref={mapRef}></div>
     </>
   );
 }

@@ -1,48 +1,108 @@
 import * as React from "react";
-import { MyCard, CardProps } from "./Card";
+import { MySensorCard, MyBulletCard } from "./Card";
 import MyNavbar from "./Navbar";
+import {
+  bullet_detection_data,
+  water_quality_data,
+} from "../types/water_quality";
 // import { useEffect, useRef } from "react";
-import Mymap from "./Mymap";
 import { GETALLFROMDB } from "../worker/dataFetcherservice";
-// import { Get_local } from "../worker/dataFetcherservice";
-// import { Get_local } from "../worker/dataFetcherservice";
+import Mymap from "./Mymap";
 
-class Dash extends React.Component {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare type props = any;
+declare type statetype = {
+  cardprops: water_quality_data[];
+  bulletcardprops: bullet_detection_data[];
+};
+class Dash extends React.Component<props, statetype> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static cardprops: CardProps = {
-    device_id: "1",
-    lat: 12.12,
-    long: 13.13,
-    pH: 7.8,
-    TDS: 100,
-    temp: 32,
-    timestamp: 90000,
-    turbidity: 600,
-  };
-  static cardprops2: CardProps = {
-    device_id: "2",
-    lat: 19.0767253,
-    long: 72.9106087,
-    pH: 7.8,
-    TDS: 100,
-    temp: 32,
-    timestamp: 90000,
-    turbidity: 600,
-  };
 
+  state: statetype = {
+    cardprops: [
+      {
+        device_id: "2",
+        lat: 19.0767253,
+        long: 72.9106087,
+        pH: 7.8,
+        TDS: 100,
+        temp: 32,
+        timestamp: 90000,
+        turbidity: 600,
+      },
+      {
+        device_id: "1",
+        lat: 12.12,
+        long: 13.13,
+        pH: 7.8,
+        TDS: 100,
+        temp: 32,
+        timestamp: 90000,
+        turbidity: 600,
+      },
+    ],
+    bulletcardprops: [],
+  };
 
   async componentDidMount() {
-     console.log(await (GETALLFROMDB()));
-     
-  }
-  
-  render() {
+    GETALLFROMDB("http://localhost:8000").then((result) => {
+      this.setState((states: statetype) => {
+        let continains = false;
+        result.forEach((x: bullet_detection_data) => {
+          continains = states.bulletcardprops.includes(x);
+        });
+        if (!continains) {
+          return { bulletcardprops: states.bulletcardprops.concat(result) };
+        } else {
+          return { bulletcardprops: states.bulletcardprops };
+        }
+      });
+    });
 
+    // const apiurl = new URL(document.URL);
+    // console.log(apiurl.host, "host");
+    // console.log(apiurl.hostname, "hostname");
+
+    // GETALLFROMDB(apiurl.host).then((result) => {
+    //   console.log(result);
+
+    //   this.setState({ bulletcardprops: result });
+    // });
+    // Dash.bulletcardprops.concat();
+  }
+
+  render() {
     return (
       <>
         <MyNavbar></MyNavbar>
-        <MyCard {...Dash.cardprops}></MyCard>
-        <Mymap data={[Dash.cardprops, Dash.cardprops2]}></Mymap>
+        <div className=" columns-2">
+          <div className="col-span-1">
+            <div
+              style={{
+                display: "flex",
+              }}
+            >
+              {this.state.cardprops.map((card, index) => {
+                return <MySensorCard key={index} {...card} />;
+              })}
+              {/* </div>
+            <div
+              style={{
+                display: "flex",
+              }}
+            > */}
+              {this.state.bulletcardprops.map((card, index) => {
+                return <MyBulletCard key={index} {...card} />;
+              })}
+            </div>
+          </div>
+          <div className="col-span-2">
+            
+            <div className="absolute p-4 rounded block w-2/4 h-3/4">
+              <Mymap data={this.state.bulletcardprops} />
+            </div>
+          </div>
+        </div>
       </>
     );
   }
