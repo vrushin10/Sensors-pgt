@@ -26,8 +26,8 @@ export default function Mymap(props: mapProps) {
     iconFeature.setStyle(
       new Style({
         image: new Icon({
-          src: "untitled.svg",
-          height: 30,
+          src: "./assests/untitled.svg",
+          height: 25,
         }),
       }),
     );

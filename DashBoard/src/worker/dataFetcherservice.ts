@@ -18,6 +18,16 @@ export async function GETALLFROMDB(api:string): Promise<bullet_detection_data[]>
     throw error
   }
 }
+export async function GETALLFROMDB_witouturi(): Promise<bullet_detection_data[]> {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    const response = await axios.get("/firebase");
+    const output = array_bullet_detection_data_zod.parse(response.data) as bullet_detection_data[];
+    return output;
+  } catch (error) {
+    throw error
+  }
+}
 
 export async function fetchDataFromApi(): Promise<
   bullet_detection_data[] | unknown

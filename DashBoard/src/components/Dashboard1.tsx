@@ -6,7 +6,7 @@ import {
   water_quality_data,
 } from "../types/water_quality";
 // import { useEffect, useRef } from "react";
-import { GETALLFROMDB } from "../worker/dataFetcherservice";
+import { GETALLFROMDB, GETALLFROMDB_witouturi } from "../worker/dataFetcherservice";
 import Mymap from "./Mymap";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,12 +63,23 @@ class Dash extends React.Component<props, statetype> {
     // console.log(apiurl.host, "host");
     // console.log(apiurl.hostname, "hostname");
 
-    // GETALLFROMDB(apiurl.host).then((result) => {
-    //   console.log(result);
+    // GETALLFROMDB_witouturi().then((result) => {
+    //   console.log(result,"result");
 
-    //   this.setState({ bulletcardprops: result });
+    //   this.setState((states: statetype) => {
+    //         let continains = false;
+    //         result.forEach((x: bullet_detection_data) => {
+    //           continains = states.bulletcardprops.includes(x);
+    //         });
+    //         if (!continains) {
+    //           return { bulletcardprops: states.bulletcardprops.concat(result) };
+    //         } else {
+    //           return { bulletcardprops: states.bulletcardprops };
+    //         }
+    //       });
     // });
-    // Dash.bulletcardprops.concat();
+    console.log(this.state.bulletcardprops);
+    
   }
 
   render() {
@@ -97,8 +108,7 @@ class Dash extends React.Component<props, statetype> {
             </div>
           </div>
           <div className="col-span-2">
-            
-            <div className="absolute p-4 rounded block w-2/4 h-3/4">
+            <div className="absolute block h-3/4 w-2/4 rounded p-4">
               <Mymap data={this.state.bulletcardprops} />
             </div>
           </div>
